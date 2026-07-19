@@ -328,8 +328,11 @@
   </div>
 </div>
 
-<!-- Stockfish engine via CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.wasm.js"></script>
+<!-- Stockfish is loaded as a Worker directly from CDN (see initEngine) so its
+     internal wasm lookup resolves against the CDN path, not this page's path -->
+<script>
+  const STOCKFISH_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.wasm.js';
+</script>
 
 <script>
 /* ============================================================
@@ -711,19 +714,30 @@ function boardToFEN(){
 let stockfish = null;
 let engineReady = false;
 
-function initEngine(){
-  if(typeof STOCKFISH !== 'function'){
-    const statusEl = document.getElementById('status');
-    if(statusEl){
-      statusEl.className = 'over';
-      statusEl.textContent = 'Engine load nahi hua — internet check karo aur page reload karo';
-    }
-    console.error('STOCKFISH global function not found. CDN script may have failed to load.');
+async function initEngine(){
+  try{
+    const workerBootstrap = "importScripts('" + STOCKFISH_CDN_URL + "');";
+    const blob = new Blob([workerBootstrap], { type: 'application/javascript' });
+    const blobUrl = URL.createObjectURL(blob);
+    stockfish = new Worker(blobUrl);
+  } catch(err){
+    showEngineError('Engine load fail — internet check karo (' + err.message + ')');
     return;
   }
-  stockfish = STOCKFISH();
   stockfish.onmessage = handleEngineMessage;
+  stockfish.onerror = function(err){
+    showEngineError('Engine crash ho gaya — page reload karo (' + (err.message||'unknown error') + ')');
+  };
   stockfish.postMessage('uci');
+}
+
+function showEngineError(msg){
+  const statusEl = document.getElementById('status');
+  if(statusEl){
+    statusEl.className = 'over';
+    statusEl.textContent = msg;
+  }
+  console.error(msg);
 }
 
 function handleEngineMessage(event){
@@ -732,6 +746,10 @@ function handleEngineMessage(event){
     stockfish.postMessage('isready');
   } else if(line === 'readyok'){
     engineReady = true;
+    if(pendingBotMoveRequested){
+      pendingBotMoveRequested = false;
+      sendMoveRequestToEngine();
+    }
   } else if(line.startsWith('bestmove')){
     const uciMove = line.split(' ')[1];
     if(uciMove && uciMove !== '(none)'){
@@ -765,9 +783,22 @@ function applyBotMoveFromUCI(uciMove){
   applyMove({r:fromR,c:fromC}, {r:toR,c:toC}, opts);
 }
 
+let pendingBotMoveRequested = false;
+
 function requestBotMove(){
-  if(!stockfish){ initEngine(); }
-  if(!stockfish) return; // engine failed to load, error already shown
+  if(!stockfish){
+    pendingBotMoveRequested = true;
+    initEngine();
+    return;
+  }
+  if(!engineReady){
+    pendingBotMoveRequested = true;
+    return;
+  }
+  sendMoveRequestToEngine();
+}
+
+function sendMoveRequestToEngine(){
   const fen = boardToFEN();
   stockfish.postMessage('setoption name UCI_LimitStrength value true');
   stockfish.postMessage('setoption name UCI_Elo value ' + currentBot.elo);
