@@ -329,7 +329,7 @@
 </div>
 
 <!-- Stockfish engine via CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.wasm.js"></script>
 
 <script>
 /* ============================================================
@@ -712,7 +712,16 @@ let stockfish = null;
 let engineReady = false;
 
 function initEngine(){
-  stockfish = STOCKFISH ? STOCKFISH() : new Worker('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');
+  if(typeof STOCKFISH !== 'function'){
+    const statusEl = document.getElementById('status');
+    if(statusEl){
+      statusEl.className = 'over';
+      statusEl.textContent = 'Engine load nahi hua — internet check karo aur page reload karo';
+    }
+    console.error('STOCKFISH global function not found. CDN script may have failed to load.');
+    return;
+  }
+  stockfish = STOCKFISH();
   stockfish.onmessage = handleEngineMessage;
   stockfish.postMessage('uci');
 }
@@ -758,6 +767,7 @@ function applyBotMoveFromUCI(uciMove){
 
 function requestBotMove(){
   if(!stockfish){ initEngine(); }
+  if(!stockfish) return; // engine failed to load, error already shown
   const fen = boardToFEN();
   stockfish.postMessage('setoption name UCI_LimitStrength value true');
   stockfish.postMessage('setoption name UCI_Elo value ' + currentBot.elo);
