@@ -328,10 +328,10 @@
   </div>
 </div>
 
-<!-- Stockfish is loaded as a Worker directly from CDN (see initEngine) so its
-     internal wasm lookup resolves against the CDN path, not this page's path -->
+<!-- Stockfish loads from same-origin local files (stockfish.wasm.js + stockfish.wasm
+     must sit next to this index.html in the repo) so wasm lookup resolves correctly -->
 <script>
-  const STOCKFISH_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.wasm.js';
+  const STOCKFISH_LOCAL_URL = 'stockfish.wasm.js';
 </script>
 
 <script>
@@ -714,19 +714,16 @@ function boardToFEN(){
 let stockfish = null;
 let engineReady = false;
 
-async function initEngine(){
+function initEngine(){
   try{
-    const workerBootstrap = "importScripts('" + STOCKFISH_CDN_URL + "');";
-    const blob = new Blob([workerBootstrap], { type: 'application/javascript' });
-    const blobUrl = URL.createObjectURL(blob);
-    stockfish = new Worker(blobUrl);
+    stockfish = new Worker(STOCKFISH_LOCAL_URL);
   } catch(err){
-    showEngineError('Engine load fail — internet check karo (' + err.message + ')');
+    showEngineError('Engine load fail (' + err.message + ') — stockfish.wasm.js aur stockfish.wasm files index.html ke saath folder mein hain check karo');
     return;
   }
   stockfish.onmessage = handleEngineMessage;
   stockfish.onerror = function(err){
-    showEngineError('Engine crash ho gaya — page reload karo (' + (err.message||'unknown error') + ')');
+    showEngineError('Engine crash — stockfish.wasm.js aur stockfish.wasm files repo mein hain check karo (' + (err.message||'unknown error') + ')');
   };
   stockfish.postMessage('uci');
 }
