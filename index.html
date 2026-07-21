@@ -103,7 +103,7 @@
   }
   .game-header{
     width:100%;
-    max-width:920px;
+    max-width:1040px;
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -123,15 +123,10 @@
   }
   .back-btn:hover, .new-game-btn:hover{ background:rgba(255,255,255,0.12); }
   .back-btn:active, .new-game-btn:active{ transform:scale(0.96); }
-  .opponent-tag{
-    font-size:14px;
-    color:var(--text-dim);
-  }
-  .opponent-tag b{ color:var(--text-main); }
 
   .game-layout{
     width:100%;
-    max-width:920px;
+    max-width:1040px;
     display:flex;
     gap:16px;
     flex-wrap:wrap;
@@ -139,16 +134,77 @@
     align-items:flex-start;
   }
 
+  /* ---- LEFT PANEL: player cards ---- */
+  .left-panel{
+    flex:0 1 160px;
+    min-width:130px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    order:1;
+  }
+  .player-card{
+    background:var(--bg-panel);
+    border:1px solid var(--border-glass);
+    border-radius:14px;
+    padding:14px 10px;
+    text-align:center;
+    backdrop-filter:blur(10px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .player-avatar{
+    width:44px;
+    height:44px;
+    margin-bottom:2px;
+  }
+  .player-name{
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:.5px;
+  }
+  .player-elo{
+    font-size:12px;
+    color:var(--text-dim);
+    background:rgba(127,119,221,0.25);
+    padding:2px 10px;
+    border-radius:20px;
+    color:#c9c5f5;
+  }
+  .captured-row{
+    min-height:22px;
+    font-size:16px;
+    line-height:1.3;
+    word-break:break-all;
+    margin-top:4px;
+  }
+  .status-box{
+    background:var(--bg-panel);
+    border:1px solid var(--border-glass);
+    border-radius:14px;
+    padding:12px 10px;
+    text-align:center;
+    backdrop-filter:blur(10px);
+    font-size:14px;
+  }
+  #status.thinking{ color:#f2c744; }
+  #status.you-turn{ color:#6de3c0; }
+  #status.over{ color:#e05252; font-weight:700; }
+
+  /* ---- CENTER: board ---- */
   .board-wrap{
     flex:1 1 420px;
     max-width:560px;
     min-width:280px;
     aspect-ratio:1/1;
-    background:var(--bg-panel);
+    background:linear-gradient(135deg,#3a3f4a,#1c1e24);
     border:1px solid var(--border-glass);
     border-radius:14px;
-    padding:8px;
-    backdrop-filter:blur(10px);
+    padding:10px;
+    order:2;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
   }
   #board{
     display:grid;
@@ -156,20 +212,33 @@
     grid-template-rows:repeat(8,1fr);
     width:100%;
     height:100%;
-    border-radius:8px;
+    border-radius:6px;
     overflow:hidden;
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,0.3);
   }
   .sq{
     position:relative;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:clamp(20px,5.5vw,42px);
     cursor:pointer;
     user-select:none;
+    background-size:cover;
+    background-position:center;
   }
-  .sq.light{ background:var(--light-sq); }
-  .sq.dark{ background:var(--dark-sq); }
+  .sq.light{
+    background-color:#d7d7d7;
+    background-image:
+      repeating-linear-gradient(100deg, rgba(255,255,255,0.35) 0px, rgba(255,255,255,0.05) 2px, transparent 4px),
+      linear-gradient(160deg,#e6e6e6,#c9c9c9);
+  }
+  .sq.dark{
+    background-color:#8b8f95;
+    background-image:
+      repeating-linear-gradient(100deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.02) 2px, transparent 4px),
+      linear-gradient(160deg,#9a9ea3,#767a80);
+  }
+  .sq::before.corner-rivet{ content:none; }
   .sq.selected::after{
     content:"";
     position:absolute;
@@ -187,10 +256,11 @@
   .sq.legal-move::before{
     content:"";
     position:absolute;
-    width:28%;
-    height:28%;
+    width:26%;
+    height:26%;
     border-radius:50%;
     background:var(--move-dot);
+    z-index:1;
   }
   .sq.legal-capture::before{
     content:"";
@@ -199,21 +269,30 @@
     border-radius:50%;
     border:4px solid var(--move-dot);
     background:transparent;
+    z-index:1;
   }
   .sq.in-check{
     background:var(--check) !important;
   }
-  .piece{ pointer-events:none; z-index:2; text-shadow:0 1px 2px rgba(0,0,0,.35); }
-  .piece.white{ color:#fbfbfb; }
-  .piece.black{ color:#1c1c1c; }
+  .piece-svg{
+    width:82%;
+    height:82%;
+    pointer-events:none;
+    position:relative;
+    z-index:2;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));
+  }
 
-  .side-panel{
+  /* ---- RIGHT PANEL: moves + resign ---- */
+  .right-panel{
     flex:1 1 220px;
-    max-width:260px;
+    max-width:280px;
     min-width:200px;
     display:flex;
     flex-direction:column;
     gap:12px;
+    order:3;
+    align-self:stretch;
   }
   .panel-box{
     background:var(--bg-panel);
@@ -229,29 +308,81 @@
     color:var(--text-dim);
     margin-bottom:8px;
   }
-  #status{ font-size:15px; min-height:20px; }
-  #status.thinking{ color:#f2c744; }
-  #status.you-turn{ color:#6de3c0; }
-  #status.over{ color:#e05252; font-weight:700; }
+  .moves-box{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-height:220px;
+  }
   #moveHistory{
-    max-height:180px;
+    flex:1;
+    max-height:420px;
     overflow-y:auto;
-    font-size:13px;
-    line-height:1.6;
+    font-size:13.5px;
+    line-height:1.8;
     color:var(--text-dim);
   }
-  #capturedWhite, #capturedBlack{
-    font-size:18px;
-    min-height:24px;
-    word-break:break-all;
+  .resign-btn{
+    background:rgba(224,82,82,0.18);
+    border:1px solid rgba(224,82,82,0.5);
+    color:#ff9d9d;
+    padding:12px 16px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:.5px;
+    backdrop-filter:blur(10px);
+    transition:background .15s ease, transform .1s ease;
   }
-  .difficulty-badge{
-    display:inline-block;
-    font-size:12px;
-    padding:2px 8px;
-    border-radius:20px;
-    background:rgba(127,119,221,0.25);
-    color:#c9c5f5;
+  .resign-btn:hover{ background:rgba(224,82,82,0.3); }
+  .resign-btn:active{ transform:scale(0.97); }
+  .resign-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  @media (max-width:760px){
+    .game-layout{ flex-direction:column; align-items:stretch; gap:12px; }
+    .left-panel{
+      order:1;
+      flex-direction:row;
+      max-width:none;
+      gap:8px;
+    }
+    .player-card{
+      flex:1;
+      padding:10px 6px;
+      min-width:0;
+    }
+    .player-avatar{ width:32px; height:32px; }
+    .player-name{ font-size:14px; }
+    .player-elo{ font-size:11px; padding:2px 8px; }
+    .captured-row{ font-size:13px; min-height:18px; }
+    .status-box{
+      flex:1.3;
+      padding:10px 8px;
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .board-wrap{
+      order:2;
+      max-width:none;
+      margin:0 auto;
+      width:100%;
+    }
+    .right-panel{
+      order:3;
+      max-width:none;
+    }
+    .moves-box{ min-height:120px; }
+    #moveHistory{ max-height:140px; }
+  }
+
+  @media (max-width:420px){
+    .left-panel{ flex-direction:column; }
+    .player-card{ flex-direction:row; justify-content:flex-start; gap:10px; text-align:left; }
+    .player-avatar{ margin-bottom:0; flex-shrink:0; }
+    .captured-row{ margin-left:auto; margin-top:0; text-align:right; }
   }
 
   ::-webkit-scrollbar{ width:6px; }
@@ -259,6 +390,115 @@
 </style>
 </head>
 <body>
+
+<!-- Hidden sprite sheet: bold-outline flat-style chess pieces -->
+<svg style="display:none" aria-hidden="true">
+<defs>
+<style>
+  .wf{ fill:#f5f2ea; stroke:#1a1a1a; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .bf{ fill:#3c3c3c; stroke:#0a0a0a; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .wf2{ fill:#1a1a1a; }
+  .bf2{ fill:#f5f2ea; }
+</style>
+
+<!-- ===== WHITE PAWN ===== -->
+<symbol id="wp" viewBox="0 0 45 45">
+  <circle class="wf" cx="22.5" cy="12" r="5"/>
+  <path class="wf" d="M18 20 Q22.5 15 27 20 L29 33 Q22.5 37 16 33 Z"/>
+  <path class="wf" d="M14 38 L31 38 L33 34 L12 34 Z"/>
+</symbol>
+
+<!-- ===== BLACK PAWN ===== -->
+<symbol id="bp" viewBox="0 0 45 45">
+  <circle class="bf" cx="22.5" cy="12" r="5"/>
+  <path class="bf" d="M18 20 Q22.5 15 27 20 L29 33 Q22.5 37 16 33 Z"/>
+  <path class="bf" d="M14 38 L31 38 L33 34 L12 34 Z"/>
+</symbol>
+
+<!-- ===== WHITE ROOK ===== -->
+<symbol id="wr" viewBox="0 0 45 45">
+  <path class="wf" d="M12 10 L12 15 L15 15 L15 12 L18.5 12 L18.5 15 L26.5 15 L26.5 12 L30 12 L30 15 L33 15 L33 10 Z"/>
+  <path class="wf" d="M14 15 L31 15 L31 32 L14 32 Z"/>
+  <path class="wf" d="M11 32 L34 32 L34 36 L11 36 Z"/>
+  <path class="wf" d="M9 36 L36 36 L36 40 L9 40 Z"/>
+</symbol>
+
+<!-- ===== BLACK ROOK ===== -->
+<symbol id="br" viewBox="0 0 45 45">
+  <path class="bf" d="M12 10 L12 15 L15 15 L15 12 L18.5 12 L18.5 15 L26.5 15 L26.5 12 L30 12 L30 15 L33 15 L33 10 Z"/>
+  <path class="bf" d="M14 15 L31 15 L31 32 L14 32 Z"/>
+  <path class="bf" d="M11 32 L34 32 L34 36 L11 36 Z"/>
+  <path class="bf" d="M9 36 L36 36 L36 40 L9 40 Z"/>
+</symbol>
+
+<!-- ===== WHITE KNIGHT ===== -->
+<symbol id="wn" viewBox="0 0 45 45">
+  <path class="wf" d="M13 38 L13 32 Q12.5 26 15 22 Q13.5 19 15 15.5 Q17 12.5 20.5 13.5 Q19.5 15 21.5 16 Q28 16.5 31 24 Q32.5 29 30.5 33.5 L30.5 38 Z"/>
+  <path class="wf" d="M15.5 22 Q19 20.5 22 22.5 Q19.5 23.5 15.5 22 Z"/>
+  <circle cx="25.5" cy="18.5" r="1.2" fill="#1a1a1a"/>
+</symbol>
+
+<!-- ===== BLACK KNIGHT ===== -->
+<symbol id="bn" viewBox="0 0 45 45">
+  <path class="bf" d="M13 38 L13 32 Q12.5 26 15 22 Q13.5 19 15 15.5 Q17 12.5 20.5 13.5 Q19.5 15 21.5 16 Q28 16.5 31 24 Q32.5 29 30.5 33.5 L30.5 38 Z"/>
+  <path class="bf" d="M15.5 22 Q19 20.5 22 22.5 Q19.5 23.5 15.5 22 Z"/>
+  <circle cx="25.5" cy="18.5" r="1.2" fill="#f5f2ea"/>
+</symbol>
+
+<!-- ===== WHITE BISHOP ===== -->
+<symbol id="wb" viewBox="0 0 45 45">
+  <circle class="wf" cx="22.5" cy="10" r="2.5"/>
+  <path class="wf" d="M22.5 14 Q30 20 27 28 Q22.5 31 18 28 Q15 20 22.5 14 Z"/>
+  <path class="wf" d="M17 32 Q22.5 29 28 32 L29 36 L16 36 Z"/>
+  <path class="wf" d="M14 39 L31 39 L31 36 L14 36 Z"/>
+</symbol>
+
+<!-- ===== BLACK BISHOP ===== -->
+<symbol id="bb" viewBox="0 0 45 45">
+  <circle class="bf" cx="22.5" cy="10" r="2.5"/>
+  <path class="bf" d="M22.5 14 Q30 20 27 28 Q22.5 31 18 28 Q15 20 22.5 14 Z"/>
+  <path class="bf" d="M17 32 Q22.5 29 28 32 L29 36 L16 36 Z"/>
+  <path class="bf" d="M14 39 L31 39 L31 36 L14 36 Z"/>
+</symbol>
+
+<!-- ===== WHITE QUEEN ===== -->
+<symbol id="wq" viewBox="0 0 45 45">
+  <circle class="wf" cx="10" cy="10" r="2.2"/>
+  <circle class="wf" cx="22.5" cy="7" r="2.2"/>
+  <circle class="wf" cx="35" cy="10" r="2.2"/>
+  <path class="wf" d="M10 13 L14 26 L31 26 L35 13 L27 20 L22.5 11 L18 20 Z"/>
+  <path class="wf" d="M14 26 L31 26 L31 30 L14 30 Z"/>
+  <path class="wf" d="M13 30 Q22.5 27 32 30 L33 34 L12 34 Z"/>
+  <path class="wf" d="M11 38 L34 38 L34 34 L11 34 Z"/>
+</symbol>
+
+<!-- ===== BLACK QUEEN ===== -->
+<symbol id="bq" viewBox="0 0 45 45">
+  <circle class="bf" cx="10" cy="10" r="2.2"/>
+  <circle class="bf" cx="22.5" cy="7" r="2.2"/>
+  <circle class="bf" cx="35" cy="10" r="2.2"/>
+  <path class="bf" d="M10 13 L14 26 L31 26 L35 13 L27 20 L22.5 11 L18 20 Z"/>
+  <path class="bf" d="M14 26 L31 26 L31 30 L14 30 Z"/>
+  <path class="bf" d="M13 30 Q22.5 27 32 30 L33 34 L12 34 Z"/>
+  <path class="bf" d="M11 38 L34 38 L34 34 L11 34 Z"/>
+</symbol>
+
+<!-- ===== WHITE KING ===== -->
+<symbol id="wk" viewBox="0 0 45 45">
+  <path class="wf" d="M21 6 L24 6 L24 9 L27 9 L27 12 L24 12 L24 15 L21 15 L21 12 L18 12 L18 9 L21 9 Z"/>
+  <path class="wf" d="M22.5 16 Q31 17 31 25 Q31 30 27 33 Q32 35 33 40 L12 40 Q13 35 18 33 Q14 30 14 25 Q14 17 22.5 16 Z"/>
+  <path d="M14 34 Q22.5 31 31 34" fill="none" stroke="#1a1a1a" stroke-width="1.6"/>
+</symbol>
+
+<!-- ===== BLACK KING ===== -->
+<symbol id="bk" viewBox="0 0 45 45">
+  <path class="bf" d="M21 6 L24 6 L24 9 L27 9 L27 12 L24 12 L24 15 L21 15 L21 12 L18 12 L18 9 L21 9 Z"/>
+  <path class="bf" d="M22.5 16 Q31 17 31 25 Q31 30 27 33 Q32 35 33 40 L12 40 Q13 35 18 33 Q14 30 14 25 Q14 17 22.5 16 Z"/>
+  <path d="M14 34 Q22.5 31 31 34" fill="none" stroke="#f5f2ea" stroke-width="1.6"/>
+</symbol>
+
+</defs>
+</svg>
 
 <!-- ============ PAGE 1: BOT SELECTION ============ -->
 <div id="homePage" class="page active">
@@ -298,32 +538,39 @@
 <div id="gamePage" class="page">
   <div class="game-header">
     <button class="back-btn" id="backBtn">&#8592; Bots</button>
-    <div class="opponent-tag">vs <b id="oppName">LX1</b> <span class="difficulty-badge" id="oppElo">600 ELO</span></div>
     <button class="new-game-btn" id="newGameBtn">New game</button>
   </div>
 
   <div class="game-layout">
+    <div class="left-panel">
+      <div class="player-card bot-side">
+        <svg viewBox="0 0 45 45" class="player-avatar"><use href="#bk"/></svg>
+        <div class="player-name" id="oppName">LX1</div>
+        <div class="player-elo" id="oppElo">600 ELO</div>
+        <div class="captured-row" id="capturedWhite"></div>
+      </div>
+
+      <div class="status-box">
+        <div id="status">Aapki chaal hai</div>
+      </div>
+
+      <div class="player-card you-side">
+        <svg viewBox="0 0 45 45" class="player-avatar"><use href="#wk"/></svg>
+        <div class="player-name">Vs You</div>
+        <div class="captured-row" id="capturedBlack"></div>
+      </div>
+    </div>
+
     <div class="board-wrap">
       <div id="board"></div>
     </div>
 
-    <div class="side-panel">
-      <div class="panel-box">
-        <h3>Status</h3>
-        <div id="status">Aapki chaal hai</div>
-      </div>
-      <div class="panel-box">
-        <h3>Aapne capture kiya</h3>
-        <div id="capturedBlack"></div>
-      </div>
-      <div class="panel-box">
-        <h3>Bot ne capture kiya</h3>
-        <div id="capturedWhite"></div>
-      </div>
-      <div class="panel-box">
-        <h3>Move history</h3>
+    <div class="right-panel">
+      <div class="panel-box moves-box">
+        <h3>Moves</h3>
         <div id="moveHistory"></div>
       </div>
+      <button class="resign-btn" id="resignBtn">Resign</button>
     </div>
   </div>
 </div>
@@ -367,13 +614,15 @@ let lastMove = null; // {from:{r,c}, to:{r,c}}
 
 let currentBot = { name:'LX1', elo:600, time:400 };
 
-const PIECE_UNICODE = {
-  'K':'&#9812;','Q':'&#9813;','R':'&#9814;','B':'&#9815;','N':'&#9816;','P':'&#9817;',
-  'k':'&#9818;','q':'&#9819;','r':'&#9820;','b':'&#9821;','n':'&#9822;','p':'&#9823;'
-};
+/* Piece rendering now uses <use> referencing SVG <symbol> defs (see PIECE_SPRITES below) */
 
 /* ---------- 2. BOARD RENDERING ---------- */
 const boardEl = document.getElementById('board');
+
+function pieceSymbolId(piece){
+  const white = piece === piece.toUpperCase();
+  return (white ? 'w' : 'b') + piece.toLowerCase();
+}
 
 function renderBoard(){
   boardEl.innerHTML = '';
@@ -392,10 +641,14 @@ function renderBoard(){
 
       const piece = board[r][c];
       if(piece !== '.'){
-        const span = document.createElement('span');
-        span.className = 'piece ' + (piece === piece.toUpperCase() ? 'white' : 'black');
-        span.innerHTML = PIECE_UNICODE[piece];
-        sq.appendChild(span);
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('viewBox', '0 0 45 45');
+        svg.setAttribute('class', 'piece-svg');
+        const use = document.createElementNS(svgNS, 'use');
+        use.setAttribute('href', '#' + pieceSymbolId(piece));
+        svg.appendChild(use);
+        sq.appendChild(svg);
       }
 
       sq.addEventListener('click', onSquareClick);
@@ -676,8 +929,8 @@ function renderSidePanel(){
     }
   }
   document.getElementById('moveHistory').innerHTML = moveHistory.map((m,i)=>`${i%2===0?Math.floor(i/2+1)+'. ':''}${m}`).join(' ');
-  document.getElementById('capturedWhite').innerHTML = capturedByWhite.map(p=>PIECE_UNICODE[p]).join(' ');
-  document.getElementById('capturedBlack').innerHTML = capturedByBlack.map(p=>PIECE_UNICODE[p]).join(' ');
+  document.getElementById('capturedWhite').innerHTML = capturedByWhite.map(p=>`<svg viewBox="0 0 45 45" style="width:20px;height:20px;display:inline-block;vertical-align:middle;"><use href="#${pieceSymbolId(p)}"/></svg>`).join('');
+  document.getElementById('capturedBlack').innerHTML = capturedByBlack.map(p=>`<svg viewBox="0 0 45 45" style="width:20px;height:20px;display:inline-block;vertical-align:middle;"><use href="#${pieceSymbolId(p)}"/></svg>`).join('');
 }
 
 /* ---------- 7. FEN GENERATION (board -> Stockfish format) ---------- */
@@ -832,6 +1085,14 @@ document.getElementById('backBtn').addEventListener('click', ()=>{
 });
 
 document.getElementById('newGameBtn').addEventListener('click', resetGame);
+
+document.getElementById('resignBtn').addEventListener('click', ()=>{
+  if(gameOver) return;
+  gameOver = true;
+  const statusEl = document.getElementById('status');
+  statusEl.className = 'over';
+  statusEl.textContent = 'Aapne resign kar diya — ' + currentBot.name + ' jeet gaya';
+});
 
 function resetGame(){
   board = [
